@@ -1,0 +1,40 @@
+name: Build du jar
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.4.1'
+
+      - name: Build
+        run: gradle build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anarchy-addon-jar
+          path: ./build/libs/*.jar
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: snapshot
+          name: Dev Build
+          prerelease: true
+          files: ./build/libs/*.jar
